@@ -1,0 +1,113 @@
+esphome:
+  name: esp32-kotel
+  platform: ESP32
+  board: esp32dev
+  
+preferences:
+  flash_write_interval: 5s
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+  safe_mode: false
+  password: "####"
+
+wifi:
+  ssid: "####"
+  password: "####"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esp32-Kotel Fallback Hotspot"
+    password: "dxZIzfc2ZvGL"
+
+captive_portal:
+
+switch:
+  - platform: gpio
+    pin: 
+      number: 33
+      inverted: true
+    id: p1
+  - platform: gpio
+    pin:
+      number: 32
+      inverted: true
+    id: p2
+  - platform: gpio
+    pin:
+      number: 2
+    id: led
+    on_turn_on:
+    - delay: 100ms
+    - switch.turn_off: led
+    
+select:
+  - platform: template
+    name: "Výběr režimu"
+    id: kotel_mode
+    restore_value: true
+    optimistic: true
+    options:
+      - "Teploměr"
+      - "Plus"
+      - "Minus"
+      
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          //id(led).turn_on();
+          if(strcmp(id(kotel_mode).state.c_str(), "Teploměr") == 0){
+            id(p1).turn_off();
+            id(p2).turn_off();
+            ESP_LOGI("main", "%s", id(kotel_mode).state.c_str());
+          } 
+          else if(strcmp(id(kotel_mode).state.c_str(), "Plus") == 0){
+            id(p1).turn_on();
+            id(p2).turn_off();
+            ESP_LOGI("main", "%s", id(kotel_mode).state.c_str());
+          } 
+          else if(strcmp(id(kotel_mode).state.c_str(), "Minus") == 0){
+            id(p1).turn_on();
+            id(p2).turn_on();
+            ESP_LOGI("main", "%s", id(kotel_mode).state.c_str());
+          }
+          
+#enable ble
+esp32_ble_tracker:
+
+sensor:
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "####"
+    bindkey: "####"
+    temperature:
+      name: "1 Temperature"
+    humidity:
+      name: "1 Humidity"
+    battery_level:
+      name: "1 Battery Level"
+      
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "####"
+    bindkey: "####"
+    temperature:
+      name: "2 Temperature"
+    humidity:
+      name: "2 Humidity"
+    battery_level:
+      name: "2 Battery Level"
+      
+  - platform: xiaomi_lywsd03mmc
+    mac_address: "####"
+    bindkey: "####"
+    temperature:
+      name: "3 Temperature"
+    humidity:
+      name: "3 Humidity"
+    battery_level:
+      name: "3 Battery Level"      
